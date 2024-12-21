@@ -1,3 +1,5 @@
+//Code adapted from: https://codeberg.org/dude_the_builder/zig_in_depth
+
 const std = @import("std");
 
 const allocator = std.heap.wasm_allocator;
