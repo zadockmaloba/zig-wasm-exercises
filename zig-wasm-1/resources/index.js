@@ -50,7 +50,7 @@ WebAssembly.instantiateStreaming(fetch("./zig-wasm-1.wasm"), importObject).then(
     const [ptr, len, capacity] = encodeStr("Hello from Zig + JS + WASM 🦎⚡!");
     zlog(ptr, len);
     // We need to manually free the string's bytes in WASM memory.
-    //free(ptr, capacity);
+    free(ptr, capacity);
 
     // Call the math functions.
     document.querySelector("#sum").textContent = "add(45, 12): " + add(45, 12);
