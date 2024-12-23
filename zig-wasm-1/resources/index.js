@@ -1,6 +1,5 @@
 // Functions imported from WASM.
-let add, alloc, free, sub, zlog;
-let memory = new WebAssembly.Memory({ initial: 1024, maximum: 1024 });
+let add, alloc, free, sub, zlog, memory;
 
 // Convenience function to prepare a typed byte array
 // from a pointer and a length into WASM memory.
@@ -32,11 +31,6 @@ let importObject = {
       document.querySelector("#log").textContent = msg;
       console.log(msg);
     },
-    memory: memory, //Only useful when importing memory in wasm
-    __indirect_function_table: new WebAssembly.Table({ initial: 256, element: "anyfunc" }),
-    __stack_pointer: new WebAssembly.Global({ value: "i32", mutable: true }, 0),
-    __memory_base: 1024,
-    __table_base: 0,
   },
 };
 
@@ -44,7 +38,7 @@ let importObject = {
 WebAssembly.instantiateStreaming(fetch("./zig-wasm-1.wasm"), importObject).then(
   (wasm_binary) => {
     // Import the functions from WASM land.
-    ({ add, alloc, free, sub, zlog } = wasm_binary.instance.exports);
+    ({ add, alloc, free, sub, zlog, memory } = wasm_binary.instance.exports);
 
     // Passing a string across the JS to WASM boundary.
     const [ptr, len, capacity] = encodeStr("Hello from Zig + JS + WASM 🦎⚡!");
