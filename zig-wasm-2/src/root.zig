@@ -136,7 +136,7 @@ const GameBoard = struct {
             if (n > 0 and self.player.segments[0].x == seg.x and self.player.segments[0].y == seg.y) {
                 self.player.size = 3;
             }
-            std.debug.print("Segment: {}, pos: {any}\n", .{ n, seg });
+            //std.debug.print("Segment: {}, pos: {any}\n", .{ n, seg });
         }
 
         //Draw board
