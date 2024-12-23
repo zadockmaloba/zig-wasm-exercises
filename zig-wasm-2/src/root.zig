@@ -160,12 +160,21 @@ pub fn main() void {
 
     gb.draw();
 
-    //requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop);
+    //var tick: u32 = 0;
+    //while (true) : (tick += 1) {
+    //    if (tick == 2_000) {
+    //        tick = 0;
+    //        gameLoop();
+    //    }
+    //}
 }
 
-pub fn gameLoop() void {
+pub export fn gameLoop() void {
     //ray.beginDrawing();
     //defer ray.endDrawing();
+
+    clearBackground(0x000000FF);
 
     gb.draw();
 
@@ -179,13 +188,12 @@ pub fn gameLoop() void {
     }
 
     //ray.clearBackground(ray.getColor(0x000000FF));
-    //clearBackground(0x000000FF);
 
     //pollKeyEvents(&gb);
     pollPlayerEvents(&gb);
     //std.time.sleep(1_000_000_000_000);
 
-    //requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop);
 }
 
 // fn pollKeyEvents(board: *GameBoard) void {

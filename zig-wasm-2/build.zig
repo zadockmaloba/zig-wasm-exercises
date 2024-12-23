@@ -16,6 +16,7 @@ pub fn build(b: *std.Build) void {
     });
     wasm_exe.export_memory = true;
     wasm_exe.export_table = true;
+    wasm_exe.rdynamic = true;
     //wasm_exe.initial_memory = 0x600000;
     b.installArtifact(wasm_exe);
 

@@ -2,7 +2,7 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 // Functions imported from WASM.
-let memory, _start, gameLoop;
+let memory, _start, wasi_thread_start, gameLoop;
 //let memory = new WebAssembly.Memory({ initial: 0x1000, maximum: 0x1000 });
 
 // Convenience function to prepare a typed byte array
@@ -76,42 +76,36 @@ const wasi_proc_exit = (exit_code) => {
     throw new Error(`WASI process exited with code: ${exit_code}`);
 };
 
-// The environment we export to WASM.
-let importObject = {
-  env: {
-    // We export this function to WASM land.
-    jsLog: (ptr, len) => {
-      const msg = decodeStr(ptr, len);
-      console.log(msg);
-    },
-    drawRectangle: (xpos, ypos, xsize, ysize, color) => {
-      ctx.fillStyle = u32ToCssColor(color);
-      ctx.fillRect(xpos, ypos, xsize, ysize);
-    },
-    clearBackground: (color) => {
-      ctx.fillStyle = u32ToCssColor(color);
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    },
-    requestAnimationFrame: (callback) => window.requestAnimationFrame(callback),
-  },
-  wasi_snapshot_preview1: {
-    fd_write: wasi_fd_write,
-    random_get: (ptr, len) => wasi_random_get(memory, ptr, len),
-    proc_exit: wasi_proc_exit,
-  },
-};
+async function init() {
+	// The environment we export to WASM.
+	const importObject = {
+	  env: {
+	    // We export this function to WASM land.
+	    jsLog: (ptr, len) => {
+	      const msg = decodeStr(ptr, len);
+	      console.log(msg);
+	    },
+	    drawRectangle: (xpos, ypos, xsize, ysize, color) => {
+	      ctx.fillStyle = u32ToCssColor(color);
+	      ctx.fillRect(xpos, ypos, xsize, ysize);
+	    },
+	    clearBackground: (color) => {
+	      ctx.fillStyle = u32ToCssColor(color);
+	      ctx.fillRect(0, 0, canvas.width, canvas.height);
+	    },
+	    requestAnimationFrame: (callback) => window.requestAnimationFrame(gameLoop),
+	  },
+	  wasi_snapshot_preview1: {
+	    fd_write: wasi_fd_write,
+	    random_get: (ptr, len) => wasi_random_get(memory, ptr, len),
+	    proc_exit: wasi_proc_exit,
+	  },
+	};
 
-// Instantiate WASM module and run our test code.
-(async () => {
-WebAssembly.instantiateStreaming(fetch("./zig-wasm-2.wasm"), importObject).then(
-  (wasm_binary) => {
-    // Import the functions from WASM land.
-    ({ _start, gameLoop, memory } = wasm_binary.instance.exports);
-    _start();
+  // Instantiate WASM module and run our test code.
+  const wasm_obj = await WebAssembly.instantiateStreaming(fetch("./zig-wasm-2.wasm"), importObject);
+  ({_start, wasi_thread_start, gameLoop, memory} = wasm_obj.instance.exports);
+  _start();
+}
 
-    // Provide the `requestAnimationFrame` function for WASM
-    //window.requestAnimationFrame(gameLoop);
-
-  },
-);
-})();
+window.onload = init;
