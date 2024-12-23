@@ -13,6 +13,8 @@ const _cols: comptime_int = screen_width / 10;
 const _rows: comptime_int = screen_height / 10;
 
 var gb: GameBoard = undefined;
+var currentDirection: u32 = 3;
+var tick: u32 = 0;
 
 const Vector2 = struct {
     x: i16,
@@ -67,10 +69,10 @@ const Rect = struct {
 };
 
 const PlayerDirection = enum(u8) {
-    LEFT,
-    RIGHT,
     TOP,
     BOTTOM,
+    LEFT,
+    RIGHT,
 };
 
 const GameBoard = struct {
@@ -171,41 +173,33 @@ pub fn main() void {
 }
 
 pub export fn gameLoop() void {
-    //ray.beginDrawing();
-    //defer ray.endDrawing();
-
     clearBackground(0x000000FF);
-
     gb.draw();
+    if (tick == 3) {
+        tick = 0;
+        switch (gb.player_direction) {
+            .RIGHT => gb.player.move(.{ .x = 1, .y = 0 }),
+            .LEFT => gb.player.move(.{ .x = -1, .y = 0 }),
+            .TOP => gb.player.move(.{ .x = 0, .y = -1 }),
+            .BOTTOM => gb.player.move(.{ .x = 0, .y = 1 }),
+        }
 
-    //std.debug.assert(gb.rect_buffer.len == 0);
-
-    switch (gb.player_direction) {
-        .RIGHT => gb.player.move(.{ .x = 1, .y = 0 }),
-        .LEFT => gb.player.move(.{ .x = -1, .y = 0 }),
-        .TOP => gb.player.move(.{ .x = 0, .y = -1 }),
-        .BOTTOM => gb.player.move(.{ .x = 0, .y = 1 }),
+        pollKeyEvents(&gb);
+        pollPlayerEvents(&gb);
+    } else {
+        tick += 1;
     }
-
-    //ray.clearBackground(ray.getColor(0x000000FF));
-
-    //pollKeyEvents(&gb);
-    pollPlayerEvents(&gb);
-    //std.time.sleep(1_000_000_000_000);
-
     requestAnimationFrame(gameLoop);
 }
 
-// fn pollKeyEvents(board: *GameBoard) void {
-//     const ky = ray.getKeyPressed();
-//     switch (ky) {
-//         .key_left => board.player_direction = .LEFT,
-//         .key_right => board.player_direction = .RIGHT,
-//         .key_up => board.player_direction = .TOP,
-//         .key_down => board.player_direction = .BOTTOM,
-//         else => {},
-//     }
-// }
+pub export fn updateDirection(dir: u32) void {
+    std.debug.print("Direction: {}\n", .{dir});
+    currentDirection = dir;
+}
+
+fn pollKeyEvents(board: *GameBoard) void {
+    board.player_direction = @enumFromInt(currentDirection);
+}
 
 fn pollPlayerEvents(board: *GameBoard) void {
     if (board.player.pos.x == board.food.pos.x and board.player.pos.y == board.food.pos.y) {
